@@ -23,7 +23,7 @@ admin.initializeApp({
   credential: admin.credential.cert({
     project_id: process.env.PROJECT_ID,
     client_email: process.env.CLIENT_EMAIL,
-    credential: admin.credential.cert(serviceAccount);
+    credential: admin.credential.cert(serviceAccount)
   })
 });
 
