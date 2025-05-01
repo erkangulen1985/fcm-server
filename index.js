@@ -2,17 +2,21 @@ const { JWT } = require('google-auth-library');
 const { Firestore } = require('@google-cloud/firestore');
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const admin = require('firebase-admin');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// JSON anahtar dosyasını oku
-const key = JSON.parse(fs.readFileSync('./serviceAccountKey.json', 'utf8'));
+// Ortamdan kimlik bilgilerini oku
+const key = {
+  project_id: process.env.PROJECT_ID,
+  client_email: process.env.CLIENT_EMAIL,
+  private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+  token_uri: "https://oauth2.googleapis.com/token"
+};
 
-// Firestore için kimlik doğrulama (JWT)
+// Firestore için JWT
 const client = new JWT({
   email: key.client_email,
   key: key.private_key,
@@ -25,12 +29,12 @@ const firestore = new Firestore({
   auth: client
 });
 
-// FCM başlat (Firebase Admin)
+// FCM başlat
 admin.initializeApp({
   credential: admin.credential.cert(key)
 });
 
-// 🔁 Firestore test endpoint
+// Bağlantı testi
 app.get('/ping', async (req, res) => {
   try {
     await firestore.collection('users').limit(1).get();
@@ -41,7 +45,7 @@ app.get('/ping', async (req, res) => {
   }
 });
 
-// 🚀 UID'ye FCM bildirimi gönder
+// Bildirim gönder
 app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
