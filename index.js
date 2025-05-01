@@ -29,8 +29,17 @@ app.post("/sendToUid", async (req, res) => {
     await admin.messaging().send({
       token: fcmToken,
       notification: { title, body },
-      data: { url: url || "https://economentor.netlify.app/mesaj.html" }
+      data: { url: url || "https://economentor.netlify.app/mesaj.html" },
+      android: {
+      priority: "high"
+      },
+      apns: {
+        headers: {
+          "apns-priority": "10"
+        }
+      }
     });
+
 
     res.send("✅ Bildirim gönderildi");
   } catch (err) {
