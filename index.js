@@ -9,23 +9,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const key = JSON.parse(fs.readFileSync('./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json', 'utf8'));
+// JSON anahtar dosyasını oku
+const key = JSON.parse(fs.readFileSync('./serviceAccountKey.json', 'utf8'));
 
-// 🔐 Firestore erişimi için JWT
+// Firestore için kimlik doğrulama (JWT)
 const client = new JWT({
   email: key.client_email,
   key: key.private_key,
   scopes: ['https://www.googleapis.com/auth/cloud-platform'],
 });
 
-const firestore = new Firestore({ projectId: key.project_id, auth: client });
+// Firestore başlat
+const firestore = new Firestore({
+  projectId: key.project_id,
+  auth: client
+});
 
-// 🔐 FCM kullanımı için Firebase Admin başlat
+// FCM başlat (Firebase Admin)
 admin.initializeApp({
   credential: admin.credential.cert(key)
 });
 
-// ✅ Firestore bağlantı testi
+// 🔁 Firestore test endpoint
 app.get('/ping', async (req, res) => {
   try {
     await firestore.collection('users').limit(1).get();
@@ -36,7 +41,7 @@ app.get('/ping', async (req, res) => {
   }
 });
 
-// 🚀 FCM bildirimi gönder
+// 🚀 UID'ye FCM bildirimi gönder
 app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
