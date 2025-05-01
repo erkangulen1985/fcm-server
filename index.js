@@ -1,29 +1,31 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
-const fs = require('fs');
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// PRIVATE_KEY sadece dosyadan okunacak
-const privateKey = JSON.parse(fs.readFileSync('economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json', 'utf8')).private_key;
-
-const serviceAccount = {
-  type: "service_account",
-  project_id: process.env.PROJECT_ID,
-  private_key: privateKey,
-  client_email: process.env.CLIENT_EMAIL,
-  token_uri: "https://oauth2.googleapis.com/token"
-};
+// ✅ Doğrudan geçerli JSON dosyasını yüklüyoruz
+const serviceAccount = require('./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
+const app = express();
+app.use(cors());
+app.use(express.json());
 
+// 🔁 Test endpointi: Firestore bağlantısı kontrolü
+app.get('/ping', async (req, res) => {
+  try {
+    await db.collection('users').limit(1).get();
+    res.send('✅ Firestore bağlantısı başarılı');
+  } catch (err) {
+    console.error('❌ Firestore erişim hatası:', err);
+    res.status(500).send('❌ Firestore bağlantı hatası');
+  }
+});
+
+// 📩 UID'ye FCM bildirimi gönderme
 app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
@@ -39,20 +41,12 @@ app.post('/sendToUid', async (req, res) => {
       data: { url: url || "https://economentor.netlify.app/mesaj.html" }
     });
 
-    res.send("Bildirim gönderildi");
+    res.send("✅ Bildirim gönderildi");
   } catch (err) {
     console.error("❌ Bildirim hatası:", err);
-    res.status(500).send("Gönderim başarısız");
+    res.status(500).send("❌ Gönderim başarısız");
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`));
-
-console.log("PROJECT_ID:", process.env.PROJECT_ID);
-console.log("CLIENT_EMAIL:", process.env.CLIENT_EMAIL);
-console.log("PRIVATE_KEY from file:", privateKey.slice(0, 50) + "...");
-
-admin.firestore().collection('users').limit(1).get()
-  .then(() => console.log("✅ Firestore erişimi başarılı"))
-  .catch(err => console.error("❌ Firestore erişim hatası:", err));
+app.listen(PORT, () => console.log(`🚀 Sunucu çalışıyor: http://localhost:${PORT}`));
