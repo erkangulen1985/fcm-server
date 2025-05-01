@@ -58,3 +58,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Bildirim sunucusu çalışıyor (http://localhost:${PORT})`);
 });
+
+const testDoc = await db.collection("test").doc("ping").set({ ok: true });
+console.log("✅ Firestore bağlantısı başarılı");
