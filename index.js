@@ -52,3 +52,7 @@ app.listen(PORT, () => console.log(`✅ Sunucu çalışıyor: http://localhost:$
 console.log("PROJECT_ID:", process.env.PROJECT_ID);
 console.log("CLIENT_EMAIL:", process.env.CLIENT_EMAIL);
 console.log("PRIVATE_KEY from file:", privateKey.slice(0, 50) + "...");
+
+admin.firestore().collection('users').limit(1).get()
+  .then(() => console.log("✅ Firestore erişimi başarılı"))
+  .catch(err => console.error("❌ Firestore erişim hatası:", err));
