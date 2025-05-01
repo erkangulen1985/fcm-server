@@ -8,7 +8,7 @@ app.use(cors({ origin: "https://economentor.netlify.app" }));
 app.use(express.json());
 
 // 🔐 JSON dosyasını oku
-const serviceAccount = JSON.parse(fs.readFileSync("./serviceAccountKey.json", "utf8"));
+const serviceAccount = JSON.parse(process.env.FIREBASE_PRIVATE_KEY);
 
 // 🔥 Firebase başlat
 admin.initializeApp({
