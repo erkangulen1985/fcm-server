@@ -8,11 +8,11 @@ app.use(cors({ origin: "https://economentor.netlify.app" }));
 app.use(express.json());
 
 // 🔐 JSON dosyasını oku
-const serviceAccount = JSON.parse(process.env.FIREBASE_PRIVATE_KEY);
+const firebaseConfig = JSON.parse(process.env.FIREBASE_CREDENTIAL_JSON);
 
 // 🔥 Firebase başlat
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(firebaseConfig)
 });
 
 const db = admin.firestore();
