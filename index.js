@@ -1,21 +1,24 @@
-import admin from "firebase-admin";
-import express from "express";
-import cors from "cors";
-import fs from "fs";
+const express = require('express');
+const admin = require('firebase-admin');
+const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const serviceAccount = JSON.parse(fs.readFileSync("economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json", "utf8"));
+// JSON dosyasını oku
+const serviceAccount = JSON.parse(fs.readFileSync('economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json', 'utf8'));
 
+// Firebase Admin başlat
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
 
-app.post("/sendToUid", async (req, res) => {
+// UID'ye göre FCM bildirimi gönder
+app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
 
