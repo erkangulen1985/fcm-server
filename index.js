@@ -1,8 +1,12 @@
-const express = require("express");
-const { google } = require("googleapis");
-const admin = require("firebase-admin");
-const cors = require("cors");
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+import express from "express";
+import { google } from "googleapis";
+import admin from "firebase-admin";
+import cors from "cors";
+import dotenv from "dotenv";
+import fetch from "node-fetch";
+import fs from "fs";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -10,9 +14,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 🔐 Firebase Admin başlat
-const serviceAccount = require("./economentor-key.json");
+const serviceAccount = JSON.parse(fs.readFileSync("economentor-key.json", "utf8"));
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+  credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
@@ -22,13 +26,13 @@ const PROJECT_ID = serviceAccount.project_id;
 async function getAccessToken() {
   const auth = new google.auth.GoogleAuth({
     credentials: serviceAccount,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"]
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 
   return await auth.getAccessToken();
 }
 
-// 📲 FCM Bildirimi gönder (notification + data ile)
+// 📲 FCM Bildirimi gönder
 async function sendNotification(token, title, body, url = "https://economentor.netlify.app/mesaj.html") {
   const accessToken = await getAccessToken();
 
@@ -38,17 +42,15 @@ async function sendNotification(token, title, body, url = "https://economentor.n
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         message: {
           token,
           notification: { title, body },
-          data: {
-            url // 🔥 Bildirime tıklandığında açılacak sayfa
-          }
-        }
-      })
+          data: { url },
+        },
+      }),
     }
   );
 
@@ -79,7 +81,7 @@ app.post("/sendToUid", async (req, res) => {
   }
 });
 
-// ✅ GET ile bildirim (Apps Script için - opsiyonel)
+// ✅ GET ile bildirim (Apps Script için)
 app.get("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.query;
 
@@ -105,7 +107,8 @@ app.get("/sendToUid", async (req, res) => {
   }
 });
 
-// ✅ Sunucuyu başlat
-app.listen(3000, () => {
-  console.log("✅ Bildirim sunucusu çalışıyor (http://localhost:3000)");
+// ✅ Dinamik PORT (Render için)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Bildirim sunucusu çalışıyor (http://localhost:${PORT})`);
 });
