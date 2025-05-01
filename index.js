@@ -2,56 +2,28 @@ const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
 const fs = require("fs");
-const serviceAccount = JSON.parse(fs.readFileSync("./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json", "utf8"));
 
 const app = express();
-
-// ✅ CORS ayarı – sadece Netlify'den gelen isteklere izin ver
-app.use(cors({
-  origin: "https://economentor.netlify.app",
-  methods: ["GET", "POST", "OPTIONS"],
-  credentials: true
-}));
-
-// ✅ OPTIONS preflight isteklerini otomatik destekle
-app.options("*", cors());
-
+app.use(cors({ origin: "https://economentor.netlify.app" }));
 app.use(express.json());
 
-// 🔐 Firebase Admin SDK kimlik bilgileri (çok satırlı PRIVATE_KEY girildi varsayımıyla)
+// 🔐 JSON dosyasını oku
+const serviceAccount = JSON.parse(fs.readFileSync("./serviceAccountKey.json", "utf8"));
+
+// 🔥 Firebase başlat
 admin.initializeApp({
-  credential: admin.credential.cert({
-    project_id: process.env.PROJECT_ID,
-    client_email: process.env.CLIENT_EMAIL,
-    credential: admin.credential.cert(serviceAccount)
-  })
+  credential: admin.credential.cert(serviceAccount)
 });
 
-// 🔥 Firestore referansı
 const db = admin.firestore();
 
-// 🔔 Test rotası – bağlantı kontrolü
-app.get("/ping", async (req, res) => {
-  try {
-    await db.collection("users").limit(1).get();
-    res.send("✅ Firestore bağlantısı başarılı");
-  } catch (err) {
-    console.error("❌ Firestore bağlantı hatası:", err);
-    res.status(500).send("❌ Firestore bağlantı hatası");
-  }
-});
-
-// 📩 Bildirim gönderme rotası
 app.post("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.body;
-  if (!uid || !title || !body) {
-    return res.status(400).send("Eksik veri");
-  }
+  if (!uid || !title || !body) return res.status(400).send("Eksik veri");
 
   try {
     const userDoc = await db.collection("users").doc(uid).get();
     const fcmToken = userDoc.data()?.fcmToken;
-
     if (!fcmToken) return res.status(404).send("fcmToken bulunamadı");
 
     await admin.messaging().send({
@@ -67,7 +39,6 @@ app.post("/sendToUid", async (req, res) => {
   }
 });
 
-// 🌍 Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Sunucu çalışıyor: http://localhost:${PORT}`);
