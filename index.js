@@ -16,7 +16,11 @@ app.use(express.urlencoded({ extended: true }));
 // 🔐 Firebase Admin başlat
 const serviceAccount = JSON.parse(fs.readFileSync("economentor-key.json", "utf8"));
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert({
+    private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+    client_email: process.env.CLIENT_EMAIL,
+    project_id: process.env.PROJECT_ID
+  }),
 });
 
 const db = admin.firestore();
