@@ -1,5 +1,4 @@
 import express from "express";
-import { google } from "googleapis";
 import admin from "firebase-admin";
 import cors from "cors";
 import fetch from "node-fetch";
@@ -10,60 +9,29 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const serviceAccount = JSON.parse(fs.readFileSync("economentor-key.json", "utf8"));
+// Firebase admin başlatılıyor
+const serviceAccount = JSON.parse(fs.readFileSync("economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json", "utf8"));
 
-// 🔐 Firebase Admin başlat
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
-const PROJECT_ID = serviceAccount.project_id;
 
-// 🔑 Google OAuth üzerinden FCM erişim tokenı al
-async function getAccessToken() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      private_key: serviceAccount.private_key,
-      client_email: serviceAccount.client_email
-    },
-    projectId: serviceAccount.project_id,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"]
-  });
-
-  const accessToken = await auth.getAccessToken();
-  return accessToken;
-}
-
-// 📲 Bildirim gönderme fonksiyonu
+// 🔔 Bildirim gönderme
 async function sendNotification(token, title, body, url = "https://economentor.netlify.app/mesaj.html") {
-  const accessToken = await getAccessToken();
+  const message = {
+    token,
+    notification: { title, body },
+    data: { url },
+  };
 
-  const response = await fetch(
-    `https://fcm.googleapis.com/v1/projects/${PROJECT_ID}/messages:send`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        message: {
-          token,
-          notification: { title, body },
-          data: { url },
-        },
-      }),
-    }
-  );
-
-  return await response.json();
+  return await admin.messaging().send(message);
 }
 
-// ✅ POST ile bildirimi UID’ye gönder
+// POST ile UID'ye bildirim
 app.post("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.body;
-
   if (!uid || !title || !body) {
     return res.status(400).json({ error: "Eksik veri (uid, title, body)" });
   }
@@ -84,10 +52,9 @@ app.post("/sendToUid", async (req, res) => {
   }
 });
 
-// ✅ GET ile bildirim (Apps Script için)
+// GET endpoint
 app.get("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.query;
-
   if (!uid || !title || !body) {
     return res.status(400).json({ error: "Eksik veri (uid, title, body)" });
   }
@@ -108,7 +75,7 @@ app.get("/sendToUid", async (req, res) => {
   }
 });
 
-// ✅ Sunucuyu başlat (Render için)
+// Sunucuyu başlat
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Bildirim sunucusu çalışıyor (http://localhost:${PORT})`);
