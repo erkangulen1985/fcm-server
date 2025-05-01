@@ -116,3 +116,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Bildirim sunucusu çalışıyor (http://localhost:${PORT})`);
 });
+
+console.log("✅ PROJECT_ID:", process.env.PROJECT_ID);
+console.log("✅ CLIENT_EMAIL:", process.env.CLIENT_EMAIL);
+console.log("✅ PRIVATE_KEY starts with:", process.env.PRIVATE_KEY?.substring(0, 30));
+console.log("✅ PRIVATE_KEY ends with:", process.env.PRIVATE_KEY?.slice(-30));
