@@ -12,7 +12,7 @@ app.use(express.json());
 const key = {
   project_id: process.env.PROJECT_ID,
   client_email: process.env.CLIENT_EMAIL,
-  private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+  private_key: process.env.PRIVATE_KEY,
   token_uri: "https://oauth2.googleapis.com/token"
 };
 
