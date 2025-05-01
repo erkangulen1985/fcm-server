@@ -131,3 +131,6 @@ dist
 
 # Replit debugger
 .breakpoints
+
+# Firebase Admin service account key
+economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json
