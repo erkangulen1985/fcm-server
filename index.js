@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const admin = require("firebase-admin");
+const fs = require("fs");
+const serviceAccount = JSON.parse(fs.readFileSync("./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json", "utf8"));
 
 const app = express();
 
@@ -21,7 +23,7 @@ admin.initializeApp({
   credential: admin.credential.cert({
     project_id: process.env.PROJECT_ID,
     client_email: process.env.CLIENT_EMAIL,
-    const serviceAccount = JSON.parse(fs.readFileSync("./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json", "utf8"));
+    credential: admin.credential.cert(serviceAccount);
   })
 });
 
