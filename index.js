@@ -29,7 +29,11 @@ const PROJECT_ID = serviceAccount.project_id;
 // 🔑 Google OAuth üzerinden FCM erişim tokenı al
 async function getAccessToken() {
   const auth = new google.auth.GoogleAuth({
-    credentials: serviceAccount,
+    credentials: {
+      client_email: process.env.CLIENT_EMAIL,
+      private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+    },
+    projectId: process.env.PROJECT_ID,
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
   });
 
