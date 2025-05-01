@@ -7,17 +7,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// JSON dosyasını oku
-const serviceAccount = JSON.parse(fs.readFileSync('economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json', 'utf8'));
+// PRIVATE_KEY sadece dosyadan okunacak
+const privateKey = JSON.parse(fs.readFileSync('economentor-8ddc4-firebase-adminsdk-fbsvc-8a38f6a8f5.json', 'utf8')).private_key;
 
-// Firebase Admin başlat
+const serviceAccount = {
+  type: "service_account",
+  project_id: process.env.PROJECT_ID,
+  private_key: privateKey,
+  client_email: process.env.CLIENT_EMAIL,
+  token_uri: "https://oauth2.googleapis.com/token"
+};
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
 const db = admin.firestore();
 
-// UID'ye göre FCM bildirimi gönder
 app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
