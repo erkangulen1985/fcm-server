@@ -21,7 +21,7 @@ admin.initializeApp({
   credential: admin.credential.cert({
     project_id: process.env.PROJECT_ID,
     client_email: process.env.CLIENT_EMAIL,
-    private_key: process.env.PRIVATE_KEY
+    const serviceAccount = JSON.parse(fs.readFileSync("./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json", "utf8"));
   })
 });
 
