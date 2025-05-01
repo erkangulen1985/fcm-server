@@ -4,7 +4,6 @@ import admin from "firebase-admin";
 import cors from "cors";
 import dotenv from "dotenv";
 import fetch from "node-fetch";
-import fs from "fs";
 
 dotenv.config();
 
@@ -14,24 +13,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 🔐 Firebase Admin başlat
-const serviceAccount = JSON.parse(fs.readFileSync("economentor-key.json", "utf8"));
 admin.initializeApp({
   credential: admin.credential.cert({
     private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
     client_email: process.env.CLIENT_EMAIL,
-    project_id: process.env.PROJECT_ID
+    project_id: process.env.PROJECT_ID,
   }),
 });
 
 const db = admin.firestore();
-const PROJECT_ID = serviceAccount.project_id;
+const PROJECT_ID = process.env.PROJECT_ID;
 
 // 🔑 Google OAuth üzerinden FCM erişim tokenı al
 async function getAccessToken() {
   const auth = new google.auth.GoogleAuth({
     credentials: {
-      client_email: process.env.CLIENT_EMAIL,
       private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
+      client_email: process.env.CLIENT_EMAIL,
     },
     projectId: process.env.PROJECT_ID,
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
@@ -40,7 +38,7 @@ async function getAccessToken() {
   return await auth.getAccessToken();
 }
 
-// 📲 FCM Bildirimi gönder
+// 📲 Bildirim gönderme fonksiyonu
 async function sendNotification(token, title, body, url = "https://economentor.netlify.app/mesaj.html") {
   const accessToken = await getAccessToken();
 
@@ -93,8 +91,6 @@ app.post("/sendToUid", async (req, res) => {
 app.get("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.query;
 
-  console.log("🔥 [GET] Gelen veri:", { uid, title, body, url });
-
   if (!uid || !title || !body) {
     return res.status(400).json({ error: "Eksik veri (uid, title, body)" });
   }
@@ -115,7 +111,7 @@ app.get("/sendToUid", async (req, res) => {
   }
 });
 
-// ✅ Dinamik PORT (Render için)
+// ✅ Sunucuyu başlat (Render için)
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Bildirim sunucusu çalışıyor (http://localhost:${PORT})`);
