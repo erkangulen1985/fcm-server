@@ -1,31 +1,36 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const cors = require('cors');
+const fs = require('fs');
 
-// ✅ Doğrudan geçerli JSON dosyasını yüklüyoruz
-const serviceAccount = require('./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json');
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
-});
-
-const db = admin.firestore();
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔁 Test endpointi: Firestore bağlantısı kontrolü
+// 🔐 serviceAccountKey.json dosyasını güvenli şekilde oku (Render'da daha sağlam çalışır)
+const rawKey = fs.readFileSync('./economentor-8ddc4-firebase-adminsdk-fbsvc-f2cb63bbea.json', 'utf8');
+const serviceAccount = JSON.parse(rawKey);
+
+// 🔐 Firebase Admin SDK başlat
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+// 🔥 Firestore bağlantısını al
+const db = admin.firestore();
+
+// ✅ Firestore bağlantı testi
 app.get('/ping', async (req, res) => {
   try {
     await db.collection('users').limit(1).get();
     res.send('✅ Firestore bağlantısı başarılı');
   } catch (err) {
-    console.error('❌ Firestore erişim hatası:', err);
+    console.error('❌ Firestore bağlantı hatası:', err);
     res.status(500).send('❌ Firestore bağlantı hatası');
   }
 });
 
-// 📩 UID'ye FCM bildirimi gönderme
+// 🚀 UID'ye FCM bildirimi gönder
 app.post('/sendToUid', async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
