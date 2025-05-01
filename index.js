@@ -2,39 +2,37 @@ import express from "express";
 import { google } from "googleapis";
 import admin from "firebase-admin";
 import cors from "cors";
-import dotenv from "dotenv";
 import fetch from "node-fetch";
 import fs from "fs";
-
-dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 🔐 Firebase Admin başlat
 const serviceAccount = JSON.parse(fs.readFileSync("economentor-key.json", "utf8"));
 
+// 🔐 Firebase Admin başlat
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
 const db = admin.firestore();
-const PROJECT_ID = process.env.PROJECT_ID;
+const PROJECT_ID = serviceAccount.project_id;
 
 // 🔑 Google OAuth üzerinden FCM erişim tokenı al
 async function getAccessToken() {
   const auth = new google.auth.GoogleAuth({
     credentials: {
-      private_key: process.env.PRIVATE_KEY.replace(/\\n/g, '\n'),
-      client_email: process.env.CLIENT_EMAIL,
+      private_key: serviceAccount.private_key,
+      client_email: serviceAccount.client_email
     },
-    projectId: process.env.PROJECT_ID,
-    scopes: ["https://www.googleapis.com/auth/firebase.messaging"],
+    projectId: serviceAccount.project_id,
+    scopes: ["https://www.googleapis.com/auth/firebase.messaging"]
   });
 
-  return await auth.getAccessToken();
+  const accessToken = await auth.getAccessToken();
+  return accessToken;
 }
 
 // 📲 Bildirim gönderme fonksiyonu
