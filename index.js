@@ -17,6 +17,11 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+// ✅ CANLILIK KONTROL ENDPOINTİ
+app.get("/ping", (req, res) => {
+  res.status(200).send("Alive"); // UptimeRobot bu endpoint'e ping atacak
+});
+
 app.post("/sendToUid", async (req, res) => {
   const { uid, title, body, url } = req.body;
   if (!uid || !title || !body) return res.status(400).send("Eksik veri");
@@ -31,7 +36,7 @@ app.post("/sendToUid", async (req, res) => {
       notification: { title, body },
       data: { url: url || "https://economentor.netlify.app/mesaj.html" },
       android: {
-      priority: "high"
+        priority: "high"
       },
       apns: {
         headers: {
@@ -39,7 +44,6 @@ app.post("/sendToUid", async (req, res) => {
         }
       }
     });
-
 
     res.send("✅ Bildirim gönderildi");
   } catch (err) {
