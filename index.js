@@ -29,6 +29,7 @@ app.post("/sendToUid", async (req, res) => {
   try {
     const userDoc = await db.collection("users").doc(uid).get();
     const fcmToken = userDoc.data()?.fcmToken;
+
     if (!fcmToken) return res.status(404).send("fcmToken bulunamadı");
 
     await admin.messaging().send({
@@ -48,6 +49,15 @@ app.post("/sendToUid", async (req, res) => {
     res.send("✅ Bildirim gönderildi");
   } catch (err) {
     console.error("❌ Bildirim hatası:", err);
+
+    // 🚨 Eğer hata 'token kayıtlı değil' hatasıysa, Firestore'dan sil
+    if (err.code === 'messaging/registration-token-not-registered') {
+      console.warn("⚠️ Geçersiz token, Firestore'dan siliniyor:", uid);
+      await db.collection("users").doc(uid).update({
+        fcmToken: admin.firestore.FieldValue.delete()
+      });
+    }
+
     res.status(500).send("❌ Gönderim başarısız");
   }
 });
