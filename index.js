@@ -4,7 +4,9 @@ const admin = require("firebase-admin");
 const fs = require("fs");
 
 const app = express();
-app.use(cors({ origin: "https://economentor.netlify.app" }));
+app.use(cors({
+  origin: ["https://economentor.netlify.app", "https://economentor.com"]
+}));
 app.use(express.json());
 
 // 🔐 JSON dosyasını oku
