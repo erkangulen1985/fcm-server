@@ -37,7 +37,7 @@ app.post("/sendToUid", async (req, res) => {
     await admin.messaging().send({
       token: fcmToken,
       notification: { title, body },
-      data: { url: url || "https://economentor.netlify.app/mesaj.html" },
+      data: { url: url || "https://economentor.com" },
       android: {
         priority: "high"
       },
