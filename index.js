@@ -5,7 +5,7 @@ const fs = require("fs");
 
 const app = express();
 app.use(cors({
-  origin: ["https://economentor.netlify.app", "https://economentor.com"]
+  origin: [ "https://economentor.com", "https://economentor.netlify.app" ]
 }));
 app.use(express.json());
 
